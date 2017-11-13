@@ -23,7 +23,7 @@ public class VisualAgent extends PApplet {
 
 	FWorld world; //Complete environment
 
-	int rad = 35; //Ball radio
+	int rad = 28; //Ball radio
 	private double xspeed = 2.5;//Ball speed
 	float xposBall = 800;
 	float yposBall = 185; 
@@ -68,8 +68,8 @@ public class VisualAgent extends PApplet {
 
 		actions[0] = 0;
 		actions[1] = -1200;
-		actions[2] = -1900;
-		frameRate(500);
+		actions[2] = -2100;
+		frameRate(100);
 		random = new Random();
 		System.out.println(creature.getY());
 		System.out.println(floor.getY());
@@ -101,7 +101,7 @@ public class VisualAgent extends PApplet {
 
 
 //		System.out.println("STATE " + STATE);
-		if(distanceToBall() <= 70 && distanceToBall() > 0) {
+		if(distanceToBall() <= 90 && distanceToBall() > 0) {
 			STATE = NEAR;
 			System.out.println("Saltando...");
 			if(creature.isResting()){
@@ -115,6 +115,7 @@ public class VisualAgent extends PApplet {
 					itera++;
 				}else
 					j = indexOfQMaxN();
+				System.out.println("maxq: " +STATE + j);
 				jump(actions[j]);
 
 				System.out.println("touching?" + (Math.abs(creature.getY()+creatureDim/2-floor.getY()) > rad? "yes": "no" ));
@@ -140,7 +141,9 @@ public class VisualAgent extends PApplet {
 				}else
 					j = indexOfQMaxF();
 
+				System.out.println("maxq: "  +STATE + j);
 				jump(actions[j]);
+
 				updateQMatrix(j, STATE);
 				System.out.println("Q_MATRIXXXXXXX");
 				for(int i = 0; i < 2; i ++){
