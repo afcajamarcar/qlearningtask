@@ -8,29 +8,15 @@ public class VisualAgent extends PApplet {
 	
 	FWorld world; //Complete environment
 	
-	
-	FCircle ball; //The ball or obstacle for the agent to jump
 	int rad = 25; //Ball radio
 	private double xspeed = 2.5;//Ball speed
-	float xposBall = width-rad;
+	float xposBall = 800;
 	float yposBall = 185; 
-	
 	FBox floor; //The floor is set static
-	
-	//Tree triangles representing the creature or agent
-	//FPoly head;
-	//FPoly torso;
-	//FPoly tail;
-	//FDistanceJoint ht, tt;
-	
-	//cube creature
-	FBox creature;
+	FBox creature; //cube creature
+	int creatureDim = 40;
 	
 	
-	
-	
-	
-
 	public void settings(){
 		size(800,300);
 	}
@@ -46,46 +32,10 @@ public class VisualAgent extends PApplet {
 		floor.setFill(255);
 		world.add(floor);
 		
-		creature = new FBox(40, 40);
+		creature = new FBox(creatureDim, creatureDim);
 		creature.setPosition(120, 178);
+		creature.setGrabbable(false);
 		world.add(creature);
-		
-		
-		System.out.println(creature.getForceX());
-		System.out.println(creature.getForceY());
-		
-		
-		/**
-		 * 
-		 
-		head = createTriangle(headVertex());
-		head.setFill(155);
-		head.setPosition(80, 50);
-		world.add(head);
-		
-		torso = createTriangle(torsoVertex());
-		torso.setFill(255);
-		torso.setPosition(80, 60);
-		world.add(torso);
-		
-		tail = createTriangle(tailVertex());
-		tail.setFill(255);
-		tail.setPosition(80, 50);
-		world.add(tail);
-		
-		
-		
-		ht = new FDistanceJoint(head, torso);
-		ht.setCollideConnected(true);
-		ht.setAnchor1(0, 10);
-		ht.setAnchor2(20, 25);
-		world.add(ht);
-		tt = new FDistanceJoint(torso, tail);
-		tt.setCollideConnected(true);
-		tt.setAnchor1(40, 10);
-		tt.setAnchor2(40, 45);
-		world.add(tt);
-		*/
 		
 	}
 
@@ -94,17 +44,22 @@ public class VisualAgent extends PApplet {
 		background(0,0,0);
 		world.step();
 		world.draw();
+		
+		//Check if the ball has passed the final of the frame
 		if(xposBall < 0-rad) {
 			xposBall = width;
-			
 		}
+		
 		ellipse(xposBall,yposBall,rad,rad);
 		xposBall =  (float) (xposBall + (xspeed*-1));
-		System.out.println(getBallPostition());
-		if(creature.isResting()) {
-			System.out.println("Saltando...");
+		//System.out.println(distanceToBall());
+		
+		if(distanceToBall() <= 70 && distanceToBall() > 0 && creature.isResting()) {
+			//System.out.println("Saltando...");
 			jump(-2000);
+			System.out.println(creature.getY());
 		}
+		
 		
 	}
 	
@@ -116,81 +71,26 @@ public class VisualAgent extends PApplet {
 		return this.yposBall;
 	}
 	
+	/**
+	 * Returns the x, y position of the ball
+	 */
 	public String getBallPostition() {
 		String x = Float.toString(getxposBall());
 		String y = Float.toString(getyposBall());
 		return x + " "+ y;
 	}
 	
+	/**
+	 * Makes the creature jump with the given force 
+	 * @param forceY
+	 */
 	public void jump(int forceY) {
 		creature.adjustVelocity(0,-forceY);
-	}
-	/**
-	 * Receives the three vertex inside an arraylist (9 values)
-	 * @param vertex
-	 * @return a Fpoly object with the shape of a triangle.
-	 
-	public FPoly createTriangle(ArrayList<Integer> vertex) {
-		FPoly triangle = new FPoly();
-		triangle.vertex(vertex.get(0), vertex.get(1));
-		triangle.vertex(vertex.get(2),vertex.get(3));
-		triangle.vertex(vertex.get(4),vertex.get(5));
-		return triangle;
-		
-	}
-	*/
-	/**
-	 * Fills an arraylist with the vertex of a triangle (head)
-	 * could be changed in order to make easier the jump or the overall form
-	 * of the creature
-	 * @return arraylist with vertex, x odd positions, y even positions
-	 
-	public ArrayList<Integer> headVertex(){
-		ArrayList<Integer> headVertex = new ArrayList<>();
-		headVertex.add(35);
-		headVertex.add(30);
-		headVertex.add(0);
-		headVertex.add(10);
-		headVertex.add(40);
-		headVertex.add(10);
-		return headVertex;
-	}
-	*/
-	/**
-	 * Fills an arraylist with the vertex of a triangle (torso)
-	 * could be changed in order to make easier the jump or the overall form
-	 * of the creature
-	 * @return arraylist with vertex, x odd positions, y even positions
-	 
-	public ArrayList<Integer> torsoVertex(){
-		ArrayList<Integer> headVertex = new ArrayList<>();
-		headVertex.add(20);
-		headVertex.add(30);
-		headVertex.add(0);
-		headVertex.add(10);
-		headVertex.add(40);
-		headVertex.add(10);
-		return headVertex;
-	}
-	*/
+	}	 
 	
-	/**
-	 * Fills an arraylist with the vertex of a triangle (torso)
-	 * could be changed in order to make easier the jump or the overall form
-	 * of the creature
-	 * @return arraylist with vertex, x odd positions, y even positions
-	 
-	public ArrayList<Integer> tailVertex(){
-		ArrayList<Integer> headVertex = new ArrayList<>();
-		headVertex.add(-30);
-		headVertex.add(10);
-		headVertex.add(20);
-		headVertex.add(20);
-		headVertex.add(40);
-		headVertex.add(45);
-		return headVertex;
+	public int distanceToBall() {
+		return (int) (getxposBall() - creature.getX());
 	}
-	*/
 	public static void main(String[] args) {
 		PApplet.main(VisualAgent.class.getName());
 
