@@ -1,23 +1,29 @@
 package gui;
 
+import com.sun.org.apache.xpath.internal.SourceTree;
 import processing.core.PApplet;
 import fisica.*;
 
 import java.util.Random;
 
-public class VisualAgent extends PApplet {
 
+public class VisualAgent extends PApplet {
+	//int state;
 	int itera = 0;
-	int [] actions = {-700,-1820,-810,-1920,-350,-70,-2330,-1200,-1000, -1000, -900, -1200,-120,-1210,-1230,-1590,-2070,-1330,-1600,-1000, -790, -500 -1200 , -1500, -1800, -1850, -1900, -2000,-2500,-3000};
-	double [] Q_matrix = new double[actions.length];
-	double [] R_matrix = new double[actions.length];
+	int[] actions = new int[3];
+	int NEAR = 0;
+	int FAR = 1;
+	int STATE;
+
+	double [][] Q_matrix = new double[2][3];
+	double [][] R_matrix = new double[2][3];
 	private double gamma = 0.8;
 
 	Random random;
 
 	FWorld world; //Complete environment
 
-	int rad = 45; //Ball radio
+	int rad = 35; //Ball radio
 	private double xspeed = 2.5;//Ball speed
 	float xposBall = 800;
 	float yposBall = 185; 
@@ -48,16 +54,22 @@ public class VisualAgent extends PApplet {
 		world.add(creature);
 
 
-		for(int i  = 0; i < Q_matrix.length; i++){
-			Q_matrix[i] = 0;
-			R_matrix[i] = actions[i] > -1800? -10: 10;
-		}
+		for(int i  = 0; i < 2; i++)
+			for(int j = 0; j < 3; j++)
+				Q_matrix[i][j] = 0;
 
-		for (Double x:R_matrix)
-			System.out.println("r_matrix: " + x);
+		R_matrix[0][0] = -10;
+		R_matrix[0][1] = -10;
+		R_matrix[0][2] = 20;
 
+		R_matrix[1][0] = 20;
+		R_matrix[1][1] = -10;
+		R_matrix[1][2] = -10;
 
-		frameRate(5000);
+		actions[0] = 0;
+		actions[1] = -1200;
+		actions[2] = -1900;
+		frameRate(500);
 		random = new Random();
 		System.out.println(creature.getY());
 		System.out.println(floor.getY());
@@ -79,27 +91,64 @@ public class VisualAgent extends PApplet {
 		//System.out.println(distanceToBall());
 
 
+//		if(state == 1){
+//			System.out.println("jumping");
+//			if(((int)(floor.getY() - creature.getY())) > rad) {
+//				System.out.println("Not touching");
+//			}
+//		}
 
-		if(distanceToBall() <= 70 && distanceToBall() > 0 && creature.isResting()) {
-			//System.out.println("Saltando...");
 
-			int j;
-//			System.out.println("j: " + j);
-//			System.out.println("action j:" + actions[j]);
-			if(itera == 0) {
-				j = random.nextInt(actions.length);
-				jump(j);
-				itera++;
-			}else
-				j = indexOfQMax();
+
+//		System.out.println("STATE " + STATE);
+		if(distanceToBall() <= 70 && distanceToBall() > 0) {
+			STATE = NEAR;
+			System.out.println("Saltando...");
+			if(creature.isResting()){
+				int j;
+
+				int action;
+				if(itera == 0) {
+					j = random.nextInt(3);
+					System.out.println("j: " + j);
+					System.out.println("action j:" + actions[j]);
+					itera++;
+				}else
+					j = indexOfQMaxN();
 				jump(actions[j]);
 
-			System.out.println("touching?" + (Math.abs(creature.getY()+creatureDim/2-floor.getY()) > rad? "yes": "no" ));
-			//System.out.println(creature.getY());
-			updateQMatrix(j);
-			System.out.println("Q_MATRIXXXXXXX");
-			for(Double x: Q_matrix)
-				System.out.println("Q_matrix : " + x);
+				System.out.println("touching?" + (Math.abs(creature.getY()+creatureDim/2-floor.getY()) > rad? "yes": "no" ));
+				System.out.println("y creature:" + creature.getY());
+				//state = 0;
+				//System.out.println(creature.getY());
+				updateQMatrix(j, STATE);
+				System.out.println("Q_MATRIXXXXXXX");
+				for(int i = 0; i < 2; i ++){
+					for(int k = 0; k < 3; k++)
+						System.out.println("Q_matrix : " + Q_matrix[i][j]);
+				}
+			}
+		}
+		else{
+			STATE = FAR;
+			if(creature.isResting()){
+				int j;
+				if(itera == 0) {
+					j = random.nextInt(3);
+					System.out.println("j: " + j);
+					System.out.println("action j:" + actions[j]);
+				}else
+					j = indexOfQMaxF();
+
+				jump(actions[j]);
+				updateQMatrix(j, STATE);
+				System.out.println("Q_MATRIXXXXXXX");
+				for(int i = 0; i < 2; i ++){
+					for(int k = 0; k < 3; k++)
+						System.out.println("Q_matrix : " + Q_matrix[i][j]);
+				}
+			}
+
 		}
 		
 		
@@ -127,7 +176,9 @@ public class VisualAgent extends PApplet {
 	 * @param forceY
 	 */
 	public void jump(int forceY) {
-		creature.adjustVelocity(0,-forceY);
+		System.out.println("STATE: " + STATE);
+		System.out.println("jumped with force: " + forceY);
+		creature.adjustVelocity(0, -forceY);
 	}	 
 	
 	public int distanceToBall() {
@@ -138,26 +189,39 @@ public class VisualAgent extends PApplet {
 
 	}
 
-	public void updateQMatrix(int action){
-		Q_matrix[action] = R_matrix[action] + gamma * q_max();
+	public void updateQMatrix(int action, int state){
+		Q_matrix[state][action] = R_matrix[state][action] + gamma * q_max(state);
 	}
 
-	public double q_max(){
-		double max = Q_matrix[0];
-		for(int i = 0; i < Q_matrix.length; i++)
-			max = max < Q_matrix[i]? Q_matrix[i]: max;
+	public double q_max(int index){
+		double max = Q_matrix[0][0];
+			for(int j = 0; j < 3; j++)
+				max = max < Q_matrix[index][j]? Q_matrix[index][j]: max;
 		return max;
 	}
 
-	public int indexOfQMax(){
-		int index = 0;
-		double max = Q_matrix[0];
-		for(int i = 0; i < Q_matrix.length; i++) {
-			if(max < Q_matrix[i]){
-				max = Q_matrix[i];
-				index = i;
-			}
+	public int indexOfQMaxN(){
 
+		int index = 0;
+		double max = Q_matrix[0][0];
+			for(int j = 0; j < 3; j++){
+				if(max < Q_matrix[0][j]){
+					max = Q_matrix[0][j];
+					index = j;
+				}
+			}
+		return index;
+	}
+
+	public int indexOfQMaxF(){
+
+		int index = 0;
+		double max = Q_matrix[1][0];
+		for(int j = 0; j < 3; j++){
+			if(max < Q_matrix[1][j]){
+				max = Q_matrix[1][j];
+				index = j;
+			}
 		}
 		return index;
 	}
