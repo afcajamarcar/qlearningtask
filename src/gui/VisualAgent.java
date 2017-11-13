@@ -88,19 +88,7 @@ public class VisualAgent extends PApplet {
 
 		ellipse(xposBall,yposBall,rad,rad);
 		xposBall =  (float) (xposBall + (xspeed*-1));
-		//System.out.println(distanceToBall());
 
-
-//		if(state == 1){
-//			System.out.println("jumping");
-//			if(((int)(floor.getY() - creature.getY())) > rad) {
-//				System.out.println("Not touching");
-//			}
-//		}
-
-
-
-//		System.out.println("STATE " + STATE);
 		if(distanceToBall() <= 90 && distanceToBall() > 0) {
 			STATE = NEAR;
 			System.out.println("Saltando...");
@@ -120,14 +108,10 @@ public class VisualAgent extends PApplet {
 
 				System.out.println("touching?" + (Math.abs(creature.getY()+creatureDim/2-floor.getY()) > rad? "yes": "no" ));
 				System.out.println("y creature:" + creature.getY());
-				//state = 0;
-				//System.out.println(creature.getY());
+				
 				updateQMatrix(j, STATE);
-				System.out.println("Q_MATRIXXXXXXX");
-				for(int i = 0; i < 2; i ++){
-					for(int k = 0; k < 3; k++)
-						System.out.println("Q_matrix : " + Q_matrix[i][j]);
-				}
+				
+				//printQMatrix(j);
 			}
 		}
 		else{
@@ -145,11 +129,9 @@ public class VisualAgent extends PApplet {
 				jump(actions[j]);
 
 				updateQMatrix(j, STATE);
-				System.out.println("Q_MATRIXXXXXXX");
-				for(int i = 0; i < 2; i ++){
-					for(int k = 0; k < 3; k++)
-						System.out.println("Q_matrix : " + Q_matrix[i][j]);
-				}
+				
+				//printQMatrix(j);
+				
 			}
 
 		}
@@ -187,10 +169,6 @@ public class VisualAgent extends PApplet {
 	public int distanceToBall() {
 		return (int) (getxposBall() - creature.getX());
 	}
-	public static void main(String[] args) {
-		PApplet.main(VisualAgent.class.getName());
-
-	}
 
 	public void updateQMatrix(int action, int state){
 		Q_matrix[state][action] = R_matrix[state][action] + gamma * q_max(state);
@@ -227,5 +205,18 @@ public class VisualAgent extends PApplet {
 			}
 		}
 		return index;
+	}
+	
+	public void printQMatrix(int j) {
+		System.out.println("Q_MATRIXXXXXXX");
+		for(int i = 0; i < 2; i ++){
+			for(int k = 0; k < 3; k++)
+				System.out.println("Q_matrix : " + Q_matrix[i][j]);
+		}
+	}
+	
+	public static void main(String[] args) {
+		PApplet.main(VisualAgent.class.getName());
+
 	}
 }
