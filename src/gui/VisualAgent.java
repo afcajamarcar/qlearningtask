@@ -82,16 +82,19 @@ public class VisualAgent extends PApplet {
 
 		if(distanceToBall() <= 70 && distanceToBall() > 0 && creature.isResting()) {
 			//System.out.println("Saltando...");
-			int j = random.nextInt(actions.length);
+
+			int j;
 //			System.out.println("j: " + j);
 //			System.out.println("action j:" + actions[j]);
 			if(itera == 0) {
-				jump(random.nextInt(actions.length));
+				j = random.nextInt(actions.length);
+				jump(j);
 				itera++;
 			}else
-				jump(actions[indexOfQMax()]);
+				j = indexOfQMax();
+				jump(actions[j]);
 
-			//System.out.println("touching?" + (Math.abs(creature.getY()+creatureDim/2-floor.getY()) > rad? "yes": "no" ));
+			System.out.println("touching?" + (Math.abs(creature.getY()+creatureDim/2-floor.getY()) > rad? "yes": "no" ));
 			//System.out.println(creature.getY());
 			updateQMatrix(j);
 			System.out.println("Q_MATRIXXXXXXX");
